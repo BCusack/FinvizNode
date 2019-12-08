@@ -1,10 +1,21 @@
 var express = require('express');
 var router = express.Router();
 var fs = require('fs');
-var request = require('request');
 var $ = require('cheerio');
 const puppeteer = require('puppeteer');
-
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const csvWriter = createCsvWriter({
+  path: 'out.csv',
+  header: [{
+      id: 'name',
+      title: 'Name'
+    },
+    {
+      id: 'value',
+      title: 'Value'
+    }
+  ]
+});
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', {
@@ -15,12 +26,12 @@ router.get('/', function (req, res, next) {
   let fill = [];
   puppet(url, obj, fill);
 
-  var minutes = 1,
+  var minutes = 2,
     the_interval = minutes * 60 * 1000;
   setInterval(function () {
     let newDate = new Date(Date.now());
 
-    console.log("I am doing my 1 minutes check at :", newDate);
+    console.log("I am doing my", minutes, "minutes check at :", newDate);
     // do your stuff here
     puppet(url, obj, fill);
   }, the_interval);
@@ -76,47 +87,16 @@ function scrape(html, obj, fill) {
   });
   console.log("Saving to file....");
   var temp = JSON.stringify(obj);
-  var max = getMax(obj, "value");
-  var min = getMin(obj, "value");
-  var str = max.name.concat(min.name);
-  console.log("max", max.name);
-  console.log("min", min.name);
-  console.log("str", str);
+  csvWriter
+    .writeRecords(obj)
+    .then(() => console.log('The CSV file was written successfully'));
 
 
-  fs.writeFile('temp.json', temp, function (err, data) {
+  fs.writeFile('temp.json', temp, function (err, obj) {
     if (err) {
       console.log(err);
     } else {
       console.log("Successfully Written to: temp.js");
     }
   });
-  fs.writeFile('max.txt', str, function (err, data) {
-    if (err) {
-      console.log(err);
-
-    } else {
-      console.log("Successfully Written to : Max.js");
-
-    }
-  });
-
-}
-
-function getMax(arr, prop) {
-  var max;
-  for (var i = 0; i < arr.length; i++) {
-    if (!max || parseFloat(arr[i][prop]) > parseFloat(max[prop]))
-      max = arr[i];
-  }
-  return max;
-}
-
-function getMin(arr, prop) {
-  var min;
-  for (var i = 0; i < arr.length; i++) {
-    if (!min || parseFloat(arr[i][prop]) < parseFloat(min[prop]))
-      min = arr[i];
-  }
-  return min;
 }
