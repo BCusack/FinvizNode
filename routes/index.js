@@ -87,8 +87,16 @@ function scrape(html, obj, fill) {
   });
   console.log("Saving to file....");
   var temp = JSON.stringify(obj);
+  var max = getMax(obj, "value");
+  var min = getMin(obj, "value");
+  var str = max.name.concat(min.name);
+  var str2 = min.name.concat(max.name);
+  var obj2 = {
+    "pair1": str,
+    "pair2": str2
+  };
   csvWriter
-    .writeRecords(obj)
+    .writeRecords(obj2)
     .then(() => console.log('The CSV file was written successfully'));
 
 
@@ -99,4 +107,22 @@ function scrape(html, obj, fill) {
       console.log("Successfully Written to: temp.js");
     }
   });
+}
+
+function getMax(arr, prop) {
+  var max;
+  for (var i = 0; i < arr.length; i++) {
+    if (!max || parseFloat(arr[i][prop]) > parseFloat(max[prop]))
+      max = arr[i];
+  }
+  return max;
+}
+
+function getMin(arr, prop) {
+  var min;
+  for (var i = 0; i < arr.length; i++) {
+    if (!min || parseFloat(arr[i][prop]) < parseFloat(min[prop]))
+      min = arr[i];
+  }
+  return min;
 }
