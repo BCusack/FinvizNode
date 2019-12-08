@@ -7,14 +7,9 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const csvWriter = createCsvWriter({
   path: 'out.csv',
   header: [{
-      id: 'name',
-      title: 'Name'
-    },
-    {
-      id: 'value',
-      title: 'Value'
-    }
-  ]
+    id: 'name',
+    title: 'Name'
+  }]
 });
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -91,15 +86,14 @@ function scrape(html, obj, fill) {
   var min = getMin(obj, "value");
   var str = max.name.concat(min.name);
   var str2 = min.name.concat(max.name);
-  var obj2 = {
-    "pair1": str,
-    "pair2": str2
-  };
+  var obj2 = {};
+  obj2[1] = str;
+  obj2[0] = str2;
+  JSON.stringify(obj2);
+  console.log(obj2);
   csvWriter
     .writeRecords(obj2)
     .then(() => console.log('The CSV file was written successfully'));
-
-
   fs.writeFile('temp.json', temp, function (err, obj) {
     if (err) {
       console.log(err);
