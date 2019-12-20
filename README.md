@@ -1,1 +1,1 @@
-# FinvizNode
+# FinvizNode for Node
