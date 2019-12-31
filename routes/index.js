@@ -12,6 +12,7 @@ var minutes = 1,
   the_interval = minutes * 60 * 1000;
 
 const pup = puppeteer.launch({
+  args: ['--no-sandbox'],
   headless: true
 });
 
