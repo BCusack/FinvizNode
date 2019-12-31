@@ -1,80 +1,99 @@
 var express = require('express');
+const cheerio = require('cheerio');
+const listArray = require("../public/convertcsv.json");
+
 var router = express.Router();
-var fs = require('fs');
 var $ = require('cheerio');
 const puppeteer = require('puppeteer');
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-const csvWriter = createCsvWriter({
-  path: 'out.csv',
-  header: [{
-      id: 'id',
-      title: 'ID'
-    },
-    {
-      id: 'pair',
-      title: 'PAIR'
-    }
-  ]
+const url = 'https://finviz.com/forex_performance.ashx';
+let fill = [];
+var minutes = 1,
+  the_interval = minutes * 60 * 1000;
+const pup = puppeteer.launch({
+  headless: true
 });
-/* GET home page. */
+
 router.get('/', function (req, res, next) {
-  res.render('index', {
-    title: 'Express'
+  puppet().then((data) => {
+    res.json(data);
+  }).catch((error) => {
+    //handle your error
   });
-  const url = 'https://finviz.com/forex_performance.ashx';
-  let obj = [];
-  let fill = [];
-  puppet(url, obj, fill);
-
-  var minutes = 2,
-    the_interval = minutes * 60 * 1000;
-  setInterval(function () {
-    let newDate = new Date(Date.now());
-
-    console.log("I am doing my", minutes, "minutes check at :", newDate);
-    // do your stuff here
-    puppet(url, obj, fill);
-  }, the_interval);
-
 });
+router.post('/all', function (req, res) {
+
+  return res.send();
+})
 
 
-module.exports = router;
+const puppet = function () {
+  let obj = [];
 
-function puppet(url, obj, fill) {
-  puppeteer
-    .launch({
-      headless: true
-    })
-    .then(function (browser) {
-      console.log("Loading Browser.....");
-      return browser.newPage();
-    })
-    .then(function (page) {
-      page.setRequestInterception(true);
-      page.on('request', (req) => {
-        if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
-          req.abort();
-        } else {
-          req.continue();
+  return new Promise((resolve, reject) => {
+    pup
+      .then(browser => {
+        browser.createIncognitoBrowserContext();
+        return browser.newPage();
+      })
+      .then(async function (page) {
+        try {
+          page.setRequestInterception(true);
+          page.on('request', (req) => {
+            if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
+              req.abort();
+            } else {
+              req.continue();
+            }
+          });
+        } catch (err) {
+          console.log(err);
         }
-      });
 
-      return page.goto(url)
-        .then(function () {
 
-          console.log("Loading Page.....");
-          return page.content();
+        await page.goto(url);
+        console.log("Loading Page.....");
+        return page.content();
+      })
+      .then(html => {
+        const $ = cheerio.load(html);
+        let newsHeadlines = [];
+        let obj = [];
+
+        let fill = [];
+        $('.rect').each(function (i, elem) {
+          obj[i] = {};
+          fill[i] = $(this).text().split('%');
+          obj[i]['name'] = fill[i][1];
+          obj[i]['value'] = parseFloat(fill[i][0]);
+          var temp = JSON.stringify(obj);
+          newsHeadlines.push({
+            temp
+          });
         });
-    })
-    .then(function (html) {
-      console.log("Begin Scraping....");
-      scrape(html, obj, fill);
-    })
-    .catch(function (err) {
-      //handle error
-      console.log(err);
-    });
+        console.log("Saving to file....");
+        var max = getMax(obj, "value");
+        var min = getMin(obj, "value");
+        var str = max.name.concat(min.name);
+        var str2 = min.name.concat(max.name);
+        if (checkPair(str)) {
+          return obj2 = [{
+            pair: str,
+            direction: 1
+          }];
+        } else {
+          return obj2 = [{
+            pair: str2,
+            direction: 0
+          }];
+        }
+      }).then(() => {
+        return resolve(obj2);
+      })
+      .catch((err) => {
+        console.log(err);
+        reject(err);
+      });
+  });
 }
 
 function scrape(html, obj, fill) {
@@ -92,25 +111,13 @@ function scrape(html, obj, fill) {
   var str = max.name.concat(min.name);
   var str2 = min.name.concat(max.name);
   const obj2 = [{
-    id: 1,
+
     pair: str
   }, {
-    id: 2,
+
     pair: str2
   }];
-
-
   console.log(obj2);
-  csvWriter
-    .writeRecords(obj2)
-    .then(() => console.log('The CSV file was written successfully'));
-  fs.writeFile('temp.json', temp, function (err, obj) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Successfully Written to: temp.js");
-    }
-  });
 }
 
 function getMax(arr, prop) {
@@ -130,3 +137,14 @@ function getMin(arr, prop) {
   }
   return min;
 }
+
+function checkPair(pair) {
+  const list = listArray;
+  const found = list.find(element => element === pair);
+  if (found !== undefined) {
+    return true;
+  } else {
+    return false;
+  }
+}
+module.exports = router;

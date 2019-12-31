@@ -7,9 +7,11 @@
     "Dev": "nodemon"
   },
   "dependencies": {
+    "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.2",
     "clientside-request": "^1.4.4",
     "cookie-parser": "~1.4.3",
+    "cors": "^2.8.5",
     "csv-writer": "^1.5.0",
     "debug": "~2.6.9",
     "express": "~4.16.0",
