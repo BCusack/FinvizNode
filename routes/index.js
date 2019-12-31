@@ -6,28 +6,37 @@ var router = express.Router();
 var $ = require('cheerio');
 const puppeteer = require('puppeteer');
 const url = 'https://finviz.com/forex_performance.ashx';
-let fill = [];
+
+let sorted = [];
 var minutes = 1,
   the_interval = minutes * 60 * 1000;
+
 const pup = puppeteer.launch({
   headless: true
 });
 
-router.get('/', function (req, res, next) {
+router.get('/pair', function (req, res, next) {
   puppet().then((data) => {
     res.json(data);
   }).catch((error) => {
     //handle your error
   });
 });
-router.post('/all', function (req, res) {
+router.get('/all', function (req, res, next) {
+  puppet().then(() => {
+    res.json(sorted);
+  }).catch((error) => {
+    //handle your error
+  });
+});
+router.get('/', function (req, res) {
+  return res.render('index');
+});
 
-  return res.send();
-})
 
 
 const puppet = function () {
-  let obj = [];
+
 
   return new Promise((resolve, reject) => {
     pup
@@ -57,9 +66,8 @@ const puppet = function () {
       .then(html => {
         const $ = cheerio.load(html);
         let newsHeadlines = [];
-        let obj = [];
-
         let fill = [];
+        let obj = [];
         $('.rect').each(function (i, elem) {
           obj[i] = {};
           fill[i] = $(this).text().split('%');
@@ -70,7 +78,8 @@ const puppet = function () {
             temp
           });
         });
-        console.log("Saving to file....");
+        sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+        console.log("Data collected....");
         var max = getMax(obj, "value");
         var min = getMin(obj, "value");
         var str = max.name.concat(min.name);
