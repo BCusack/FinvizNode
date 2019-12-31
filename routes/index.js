@@ -12,8 +12,9 @@ var minutes = 1,
   the_interval = minutes * 60 * 1000;
 
 const pup = puppeteer.launch({
-  args: ['--no-sandbox'],
-  executablePath: path.resolve(__dirname, '../node_modules/puppeteer/.local-chromium/linux-650583/chrome-linux/chrome'),
+  args: ['--no-sandbox',
+    '--disable-setuid-sandbox'
+  ],
   headless: true
 });
 
