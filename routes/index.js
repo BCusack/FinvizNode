@@ -13,6 +13,7 @@ var minutes = 1,
 
 const pup = puppeteer.launch({
   args: ['--no-sandbox'],
+  executablePath: path.resolve(__dirname, '../node_modules/puppeteer/.local-chromium/linux-650583/chrome-linux/chrome'),
   headless: true
 });
 
