@@ -54,7 +54,12 @@ async function puppet() {
   } catch (err) {
     console.log(err);
   }
-  await page.goto(url);
+  try {
+    await page.goto(url);
+  } catch (error) {
+    console.error(error);
+  }
+
   console.log("Loading Page.....");
   const html = await page.content();
   let data = scrape(html);
@@ -64,7 +69,6 @@ async function puppet() {
 
 function scrape(html) {
   const $ = cheerio.load(html);
-  let newsHeadlines = [];
   let fill = [];
   let obj = [];
   $('.rect').each(function (i, elem) {
@@ -72,10 +76,7 @@ function scrape(html) {
     fill[i] = $(this).text().split('%');
     obj[i]['name'] = fill[i][1];
     obj[i]['value'] = parseFloat(fill[i][0]);
-    var temp = JSON.stringify(obj);
-    newsHeadlines.push({
-      temp
-    });
+
   });
   sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
   console.log("Data collected....");
