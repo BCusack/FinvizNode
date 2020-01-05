@@ -11,125 +11,89 @@ let sorted = [];
 var minutes = 1,
   the_interval = minutes * 60 * 1000;
 
-const pup = puppeteer.launch({
-  args: ['--no-sandbox',
-    '--disable-setuid-sandbox'
-  ],
-  headless: true
-});
 
 router.get('/pair', function (req, res, next) {
   puppet().then((data) => {
     res.json(data);
   }).catch((error) => {
-    //handle your error
+    console.error(error);
   });
 });
 router.get('/all', function (req, res, next) {
   puppet().then(() => {
     res.json(sorted);
   }).catch((error) => {
-    //handle your error
+    console.error(error);
   });
 });
 router.get('/', function (req, res) {
   return res.render('index');
 });
 
-
-
-const puppet = function () {
-
-
-  return new Promise((resolve, reject) => {
-    pup
-      .then(browser => {
-        browser.createIncognitoBrowserContext();
-        return browser.newPage();
-      })
-      .then(async function (page) {
-        try {
-          page.setRequestInterception(true);
-          page.on('request', (req) => {
-            if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
-              req.abort();
-            } else {
-              req.continue();
-            }
-          });
-        } catch (err) {
-          console.log(err);
-        }
-
-
-        await page.goto(url);
-        console.log("Loading Page.....");
-        return page.content();
-      })
-      .then(html => {
-        const $ = cheerio.load(html);
-        let newsHeadlines = [];
-        let fill = [];
-        let obj = [];
-        $('.rect').each(function (i, elem) {
-          obj[i] = {};
-          fill[i] = $(this).text().split('%');
-          obj[i]['name'] = fill[i][1];
-          obj[i]['value'] = parseFloat(fill[i][0]);
-          var temp = JSON.stringify(obj);
-          newsHeadlines.push({
-            temp
-          });
-        });
-        sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
-        console.log("Data collected....");
-        var max = getMax(obj, "value");
-        var min = getMin(obj, "value");
-        var str = max.name.concat(min.name);
-        var str2 = min.name.concat(max.name);
-        if (checkPair(str)) {
-          return obj2 = [{
-            pair: str,
-            direction: 1
-          }];
-        } else {
-          return obj2 = [{
-            pair: str2,
-            direction: 0
-          }];
-        }
-      }).then(() => {
-        return resolve(obj2);
-      })
-      .catch((err) => {
-        console.log(err);
-        reject(err);
-      });
+async function puppet() {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox',
+      '--disable-setuid-sandbox'
+    ],
+    headless: false
   });
+  const page = await browser.newPage();
+  try {
+    page.setRequestInterception(true);
+    page.setViewport({
+      width: 1920,
+      height: 1080
+    });
+    page.on('request', (req) => {
+      if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image' || req.resourceType() == 'media') {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+  await page.goto(url);
+  console.log("Loading Page.....");
+  const html = await page.content();
+  let data = scrape(html);
+  browser.close();
+  return (data);
 }
 
-function scrape(html, obj, fill) {
-  $('.rect', html).each(function (i, elem) {
-    // console.log($(this).text());
+function scrape(html) {
+  const $ = cheerio.load(html);
+  let newsHeadlines = [];
+  let fill = [];
+  let obj = [];
+  $('.rect').each(function (i, elem) {
     obj[i] = {};
     fill[i] = $(this).text().split('%');
     obj[i]['name'] = fill[i][1];
     obj[i]['value'] = parseFloat(fill[i][0]);
+    var temp = JSON.stringify(obj);
+    newsHeadlines.push({
+      temp
+    });
   });
-  console.log("Saving to file....");
-  var temp = JSON.stringify(obj);
+  sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+  console.log("Data collected....");
   var max = getMax(obj, "value");
   var min = getMin(obj, "value");
   var str = max.name.concat(min.name);
   var str2 = min.name.concat(max.name);
-  const obj2 = [{
-
-    pair: str
-  }, {
-
-    pair: str2
-  }];
-  console.log(obj2);
+  if (checkPair(str)) {
+    return obj2 = [{
+      pair: str,
+      direction: 1
+    }];
+  } else {
+    return obj2 = [{
+      pair: str2,
+      direction: 0
+    }];
+  }
 }
 
 function getMax(arr, prop) {
