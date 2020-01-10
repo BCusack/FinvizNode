@@ -1,30 +1,34 @@
 const cheerio = require('cheerio');
 const listArray = require("../public/convertcsv.json");
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker');
 var $ = require('cheerio');
-
+puppeteer.use(AdblockerPlugin());
 const url = 'https://finviz.com/forex_performance.ashx';
+var minutes = 1,
+    the_interval = minutes * 60 * 1000;
 
 // launch puppeteer
 async function puppet() {
     const browser = await launchHelper();
     const page = await browser.newPage();
-    try {
-        page.setRequestInterception(true);
-        page.setViewport({
-            width: 1920,
-            height: 1080
-        });
-        page.on('request', (req) => {
-            if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image' || req.resourceType() == 'media') {
-                req.abort();
-            } else {
-                req.continue();
-            }
-        });
-    } catch (err) {
-        console.log(err);
-    }
+    // try {
+    //     page.setRequestInterception(true);
+    //     page.setViewport({
+    //         width: 1920,
+    //         height: 1080
+    //     });
+    //     page.on('request', (req) => {
+    //         if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
+    //             req.abort();
+    //         } else {
+    //             req.continue();
+    //         }
+    //     });
+    // } catch (err) {
+    //     console.log(err);
+    // }
     try {
         await page.goto(url);
     } catch (error) {
@@ -36,19 +40,26 @@ async function puppet() {
     browser.close();
     return (data);
 }
+
+async function launchHelper() {
+    try {
+        return await puppeteer.launch({
+            args: ['--no-sandbox',
+                '--disable-setuid-sandbox'
+            ],
+            headless: false
+        }).then(console.log("launching"));
+    } catch (error) {
+        console.error(error);
+    }
+}
 exports.getList = getList;
 exports.getPair = getPair;
 
-async function launchHelper() {
-    return await puppeteer.launch({
-        args: ['--no-sandbox',
-            '--disable-setuid-sandbox'
-        ],
-        headless: true
-    });
-}
+
 
 function scrape(html) {
+
     const $ = cheerio.load(html);
     let fill = [];
     let obj = [{
@@ -64,9 +75,12 @@ function scrape(html) {
     });
     console.log("Data collected....");
     return sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+
+
 }
 
 async function getPair() {
+
     let ls = await puppet();
     let max = await getMax(ls, "value");
     let min = await getMin(ls, "value");
