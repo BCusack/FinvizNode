@@ -29,7 +29,7 @@ router.get('/all', function (req, res, next) {
 router.get('/', function (req, res) {
   return res.render('index');
 });
-
+// launch puppeteer
 async function puppet() {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox',
