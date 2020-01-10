@@ -13,22 +13,6 @@ var minutes = 1,
 async function puppet() {
     const browser = await launchHelper();
     const page = await browser.newPage();
-    // try {
-    //     page.setRequestInterception(true);
-    //     page.setViewport({
-    //         width: 1920,
-    //         height: 1080
-    //     });
-    //     page.on('request', (req) => {
-    //         if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image') {
-    //             req.abort();
-    //         } else {
-    //             req.continue();
-    //         }
-    //     });
-    // } catch (err) {
-    //     console.log(err);
-    // }
     try {
         await page.goto(url);
     } catch (error) {
@@ -47,7 +31,7 @@ async function launchHelper() {
             args: ['--no-sandbox',
                 '--disable-setuid-sandbox'
             ],
-            headless: false
+            headless: true
         }).then(console.log("launching"));
     } catch (error) {
         console.error(error);
