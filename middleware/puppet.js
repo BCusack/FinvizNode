@@ -5,12 +5,12 @@ const puppeteer = require('puppeteer-extra');
 const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker');
 var $ = require('cheerio');
 puppeteer.use(AdblockerPlugin());
-const url = 'https://finviz.com/forex_performance.ashx';
+
 var minutes = 1,
     the_interval = minutes * 60 * 1000;
 
 // launch puppeteer
-async function puppet() {
+async function puppet(url) {
     const browser = await launchHelper();
     const page = await browser.newPage();
     try {
@@ -63,9 +63,9 @@ function scrape(html) {
 
 }
 
-async function getPair() {
+async function getPair(url) {
 
-    let ls = await puppet();
+    let ls = await puppet(url);
     let max = await getMax(ls, "value");
     let min = await getMin(ls, "value");
     let str = max.name.concat(min.name);
@@ -84,8 +84,8 @@ async function getPair() {
 
 }
 
-function getList() {
-    let list = puppet()
+function getList(url) {
+    let list = puppet(url)
     return (list);
 }
 
