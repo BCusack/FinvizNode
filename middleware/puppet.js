@@ -73,12 +73,14 @@ async function getPair(url) {
     if (checkPair(str)) {
         return obj2 = [{
             pair: str,
-            direction: 1
+            direction: 1,
+            range: (max.value - min.value).toFixed(2)
         }];
     } else {
         return obj2 = [{
             pair: str2,
-            direction: 0
+            direction: 0,
+            range: max.value - min.value
         }];
     }
 
@@ -90,7 +92,7 @@ function getList(url) {
 }
 
 async function getMax(arr, prop) {
-    var max;
+    let max;
     for (var i = 0; i < arr.length; i++) {
         if (!max || parseFloat(arr[i][prop]) > parseFloat(max[prop]))
             max = arr[i];

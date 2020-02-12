@@ -13,6 +13,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.set('port', process.env.PORT || 80);
 app.use(cors());
+app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 // Configuring body parser middleware
 app.use(bodyParser.urlencoded({
   extended: false

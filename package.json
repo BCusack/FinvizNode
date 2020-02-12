@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "body-parser": "^1.19.0",
+    "bootstrap": "^4.4.1",
     "cheerio": "^1.0.0-rc.2",
     "clientside-request": "^1.4.4",
     "cookie-parser": "~1.4.3",
