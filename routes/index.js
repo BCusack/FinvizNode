@@ -37,9 +37,33 @@ router.get('/pair/MTD', function (req, res, next) {
   });
 });
 
-// get all values
+// get all day values
 router.get('/all/day', function (req, res, next) {
-  getList(url).then((data) => {
+  getList(url + "?v=1").then((data) => {
+    res.json(data);
+  }).catch((error) => {
+    console.error(error);
+  });
+});
+// get all week values
+router.get('/all/week', function (req, res, next) {
+  getList(url + "?v=2").then((data) => {
+    res.json(data);
+  }).catch((error) => {
+    console.error(error);
+  });
+});
+// get all week values
+router.get('/all/MTD', function (req, res, next) {
+  getList(url + "?v=8").then((data) => {
+    res.json(data);
+  }).catch((error) => {
+    console.error(error);
+  });
+});
+// get all week values
+router.get('/all/YTD', function (req, res, next) {
+  getList(url + "?v=7").then((data) => {
     res.json(data);
   }).catch((error) => {
     console.error(error);
