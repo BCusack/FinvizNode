@@ -64,7 +64,6 @@ function scrape(html) {
 }
 
 async function getPair(url) {
-
     let ls = await puppet(url);
     let max = await getMax(ls, "value");
     let min = await getMin(ls, "value");
