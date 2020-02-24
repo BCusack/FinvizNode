@@ -50,7 +50,6 @@ function scrape(html) {
         name: String,
         value: Number
     }];
-    let sorted = [];
     $('.rect').each(function (i, elem) {
         obj[i] = {};
         fill[i] = $(this).text().split('%');
@@ -58,9 +57,8 @@ function scrape(html) {
         obj[i]['value'] = parseFloat(fill[i][0]);
     });
     console.log("Data collected....");
-    return sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
-
-
+    let sorted = obj.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+    return sorted;
 }
 
 async function getPair(url) {
@@ -85,9 +83,36 @@ async function getPair(url) {
 
 }
 
-function getList(url) {
-    let list = puppet(url)
-    return (list);
+async function getList(url) {
+    let list = await puppet(url);
+    let result = [];
+    let ob = {};
+    for (let i = 0; i < list.length; i++) {
+        let str = list[i]["name"];
+        for (let j = 0; j < list.length; j++) {
+            let str2 = list[j]["name"];
+            let temp = str + str2;
+            if (str != str2) {
+                if (checkPair(temp)) {
+                    ob.name = temp;
+                    ob.value = Math.abs((list[j]["value"] - list[i]["value"]).toFixed(2));
+                    ob.dir = 0;
+
+                } else {
+                    ob.name = str2 + str;
+                    ob.value = Math.abs(((list[i]["value"] - list[j]["value"])).toFixed(2));
+                    ob.dir = 1;
+
+                }
+
+            }
+
+        }
+    }
+    result.push(ob);
+
+    console.log(result);
+    return (result);
 }
 
 async function getMax(arr, prop) {
