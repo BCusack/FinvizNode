@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "Dev": "nodemon",
-    "Deploy": "git push heroku master"
+    "Deploy": "git push heroku master",
+    "debug": "nodemon --inspect ./bin/www"
   },
   "dependencies": {
     "body-parser": "^1.19.0",

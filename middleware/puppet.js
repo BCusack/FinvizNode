@@ -85,33 +85,24 @@ async function getPair(url) {
 
 async function getList(url) {
     let list = await puppet(url);
-    let result = [];
-    let ob = {};
+    const result = [];
     for (let i = 0; i < list.length; i++) {
-        let str = list[i]["name"];
         for (let j = 0; j < list.length; j++) {
-            let str2 = list[j]["name"];
-            let temp = str + str2;
-            if (str != str2) {
-                if (checkPair(temp)) {
-                    ob.name = temp;
-                    ob.value = Math.abs((list[j]["value"] - list[i]["value"]).toFixed(2));
-                    ob.dir = 0;
-
-                } else {
-                    ob.name = str2 + str;
-                    ob.value = Math.abs(((list[i]["value"] - list[j]["value"])).toFixed(2));
-                    ob.dir = 1;
-
-                }
-
+            let str = list[i]["name"].concat(list[j]["name"]);
+            if (checkPair(str)) {
+                name = str;
+                value = Math.abs((list[j]["value"] - list[i]["value"]).toFixed(2));
+                dir = list[i]["value"] > list[j]["value"] ? "buy" : "sell";
+                result.push({
+                    name,
+                    value,
+                    dir
+                });
             }
-
         }
     }
-    result.push(ob);
-
-    console.log(result);
+    result.sort((a, b) => b.value - a.value);
+    //console.log(result);
     return (result);
 }
 
